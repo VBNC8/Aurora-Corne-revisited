@@ -16,24 +16,26 @@ jobs:
           west update
           west zephyr-export
 
+      - name: Patch nice_nano for nice_view
+        run: |
+          # Wir fügen den Alias nice_view_spi direkt in das Board-File ein
+          # So existiert das Label global für alle Shields
+          BOARD_FILE="zmk/app/module/boards/nicekeyboards/nice_nano/nice_nano.dts"
+          sed -i '/aliases {/a \        nice-view-spi = &spi3;' $BOARD_FILE
+          # Und als node label für den Pre-Processor
+          echo "&spi3 { nice_view_spi: &spi3 {}; };" >> $BOARD_FILE
+
       - name: Build Left (nice!view + RGB)
         run: |
           cd zmk/app
-          # Wir nutzen DTS_EXTRA_CPPFLAGS, um das Label ganz oben im Devicetree zu "injizieren"
-          west build -b nice_nano -- -DSHIELD="splitkb_aurora_corne_left nice_view_adapter nice_view" \
-          -DZMK_CONFIG="${GITHUB_WORKSPACE}/config" \
-          -DDTC_OVERLAY_FILE="${GITHUB_WORKSPACE}/config/splitkb_aurora_corne.keymap" \
-          -DEXTRA_DTC_FLAGS="-Dnice_view_spi=spi3"
-          
+          west build -b nice_nano -- -DSHIELD="splitkb_aurora_corne_left nice_view_adapter nice_view" -DZMK_CONFIG="${GITHUB_WORKSPACE}/config"
           cp build/zephyr/zmk.uf2 ../../aurora_left.uf2
 
       - name: Build Right (RGB + Encoder/Scroll)
         run: |
           cd zmk/app
           rm -rf build
-          west build -b nice_nano -- -DSHIELD="splitkb_aurora_corne_right" \
-          -DZMK_CONFIG="${GITHUB_WORKSPACE}/config"
-          
+          west build -b nice_nano -- -DSHIELD="splitkb_aurora_corne_right" -DZMK_CONFIG="${GITHUB_WORKSPACE}/config"
           cp build/zephyr/zmk.uf2 ../../aurora_right.uf2
 
       - name: Upload Artifacts
