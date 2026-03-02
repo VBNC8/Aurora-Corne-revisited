@@ -2,4 +2,4 @@ include:
   - board: nice_nano_nrf52840_zmk
     shield: splitkb_aurora_corne_left nice_view_adapter nice_view
   - board: nice_nano_nrf52840_zmk
-    shield: splitkb_aurora_corne_right nice_view_adapter nice_view
+    shield: splitkb_aurora_corne_right
