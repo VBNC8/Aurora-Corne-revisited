@@ -137,14 +137,13 @@
     pinctrl-1 = <&spi3_sleep>;
     pinctrl-names = "default", "sleep";
     
-    // Hier gehört der CS-Pin für das erste Gerät (reg 0) hin:
+    // Chip Select für das Display auf reg 0
     cs-gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>; 
 
     nice_view: ls0xx@0 {
         compatible = "sharp,ls0xx";
         reg = <0>; 
         spi-max-frequency = <1000000>;
-        // cs-gpios hier ENTFERNEN (steht jetzt oben)
         width = <160>;
         height = <68>;
     };
@@ -152,6 +151,10 @@
     led_strip: ws2812@0 {
         compatible = "worldsemi,ws2812-spi";
         reg = <1>; 
-        // ... restliche Konfiguration
+        spi-max-frequency = <4000000>;
+        chain-length = <18>; 
+        spi-one-frame = <0x70>;
+        spi-zero-frame = <0x40>;
+        color-mapping = <2 1 3>; 
     };
 };
