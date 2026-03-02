@@ -22,7 +22,7 @@ jobs:
           west build -b nice_nano -- \
           -DSHIELD="splitkb_aurora_corne_left nice_view_adapter nice_view" \
           -DZMK_CONFIG="${GITHUB_WORKSPACE}/config" \
-          -Dnice_view_spi_node_label=spi3
+          -Dnice_view_spi_node_label=arduino_spi
 
       - name: Build Right (RGB + Encoder/Scroll)
         run: |
