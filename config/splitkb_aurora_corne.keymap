@@ -148,9 +148,9 @@
         height = <68>;
     };
 
-    led_strip: ws2812@0 {
+    led_strip: ws2812@1 {  // <-- Hier die 1 statt der 0
         compatible = "worldsemi,ws2812-spi";
-        reg = <1>; 
+        reg = <1>;         // Bleibt bei 1, damit es nach dem Display (reg 0) kommt
         spi-max-frequency = <4000000>;
         chain-length = <18>; 
         spi-one-frame = <0x70>;
