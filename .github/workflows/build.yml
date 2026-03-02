@@ -21,25 +21,23 @@ jobs:
           west update
           west zephyr-export
           
-          # DER ENTSCHEIDENDE FIX:
-          # Wir löschen das Pillbug-Board aus dem ZMK-Source, 
-          # damit der Zephyr-Board-Scan nicht abbricht.
+          # Fix für Pillbug (muss bleiben, damit der Scan nicht abbricht)
           rm -rf app/boards/mechwild/pillbug
-          
-          # Auch das Modul-Duplikat löschen (falls vorhanden)
           rm -rf ../modules/lib/pillbug 2>/dev/null || true
 
       - name: Build Left (nice!view + RGB)
         run: |
           cd zmk_src
-          west build -s app -b nice_nano_v2 -- -DSHIELD="splitkb_aurora_corne_left nice_view_adapter nice_view" -DZMK_CONFIG="${{ github.workspace }}/config-repo/config"
+          # Geändert auf nice_nano (ohne _v2)
+          west build -s app -b nice_nano -- -DSHIELD="splitkb_aurora_corne_left nice_view_adapter nice_view" -DZMK_CONFIG="${{ github.workspace }}/config-repo/config"
           cp build/zephyr/zmk.uf2 ../aurora_left.uf2
 
       - name: Build Right (RGB + Encoder/Scroll)
         run: |
           cd zmk_src
           rm -rf build 
-          west build -s app -b nice_nano_v2 -- -DSHIELD="splitkb_aurora_corne_right" -DZMK_CONFIG="${{ github.workspace }}/config-repo/config"
+          # Geändert auf nice_nano (ohne _v2)
+          west build -s app -b nice_nano -- -DSHIELD="splitkb_aurora_corne_right" -DZMK_CONFIG="${{ github.workspace }}/config-repo/config"
           cp build/zephyr/zmk.uf2 ../aurora_right.uf2
 
       - name: Upload Artifacts
