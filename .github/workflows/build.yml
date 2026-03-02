@@ -1,4 +1,4 @@
-name: Build Aurora Corne
+name: Build Aurora Corne Special
 on: [push, pull_request, workflow_dispatch]
 
 jobs:
@@ -7,35 +7,28 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          path: config  # Dein Repo landet im Unterordner 'config'
 
       - name: Install West
         run: pip3 install west
 
-      - name: Initialize West Workspace
+      - name: Setup & Patch Workspace
         run: |
-          west init -m https://github.com/zmkfirmware/zmk --mr main workspace
-          cd workspace
-          # Wir überschreiben die Standard-Config mit DEINER Config
-          rm -rf config
-          cp -r ../config config
+          west init -l config
           west update
           west zephyr-export
+          # Fix für den Pillbug-Error: Doppelte Boards entfernen
+          rm -rf modules/lib/pillbug 2>/dev/null || true
 
-      - name: Build Left
+      - name: Build Left (EC11 + Display)
         run: |
-          cd workspace
-          west build -s zmk/app -b nice_nano_v2 -- -DSHIELD="splitkb_aurora_corne_left nice_view_adapter nice_view" -DZMK_CONFIG="$(pwd)/config"
+          west build -s zmk/app -b nice_nano_v2 -- -DSHIELD="splitkb_aurora_corne_left nice_view_adapter nice_view" -DZMK_CONFIG="${GITHUB_WORKSPACE}/config"
 
-      - name: Build Right
+      - name: Build Right (Scrollrad)
         run: |
-          cd workspace
-          west build -s zmk/app -b nice_nano_v2 -- -DSHIELD="splitkb_aurora_corne_right nice_view_adapter nice_view" -DZMK_CONFIG="$(pwd)/config"
+          west build -s zmk/app -b nice_nano_v2 -- -DSHIELD="splitkb_aurora_corne_right" -DZMK_CONFIG="${GITHUB_WORKSPACE}/config"
 
-      - name: Upload Artifacts
+      - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: Aurora_Corne_Firmware
-          path: |
-            workspace/build/zephyr/zmk.uf2
+          name: Aurora_Firmware
+          path: build/zephyr/zmk.uf2
