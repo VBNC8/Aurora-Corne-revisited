@@ -116,7 +116,9 @@
 
 &spi3 {
     status = "okay";
-    // Das Label 'nice_view_spi' wird durch unseren GitHub-Workflow-Patch gesetzt
+    // Diese beiden Zeilen fehlten dem Compiler:
+    pinctrl-0 = <&spi3_default>;
+    pinctrl-names = "default";
     
     led_strip: ws2812@0 {
         compatible = "worldsemi,ws2812-spi";
@@ -125,6 +127,6 @@
         chain-length = <18>; 
         spi-one-frame = <0x70>;
         spi-zero-frame = <0x40>;
-        color-mapping = <2 1 3>; // GRB Format
+        color-mapping = <2 1 3>; 
     };
 };
