@@ -16,24 +16,24 @@ jobs:
           west update
           west zephyr-export
 
-      - name: Create Temporary Fix Overlay
-        # Wir erstellen eine Datei, die nice_view_spi auf spi3 mappt
-        run: |
-          mkdir -p config
-          echo '/ { nice_view_spi: &spi3 { }; };' > config/fix_display.overlay
-
       - name: Build Left (nice!view + RGB)
         run: |
           cd zmk/app
-          # Wir fügen fix_display zur Shield-Liste hinzu
-          west build -b nice_nano -- -DSHIELD="splitkb_aurora_corne_left nice_view_adapter nice_view" -DZMK_CONFIG="${GITHUB_WORKSPACE}/config" -Dextra_conf_file="${GITHUB_WORKSPACE}/config/fix_display.overlay"
+          # Wir nutzen DTS_EXTRA_CPPFLAGS, um das Label ganz oben im Devicetree zu "injizieren"
+          west build -b nice_nano -- -DSHIELD="splitkb_aurora_corne_left nice_view_adapter nice_view" \
+          -DZMK_CONFIG="${GITHUB_WORKSPACE}/config" \
+          -DDTC_OVERLAY_FILE="${GITHUB_WORKSPACE}/config/splitkb_aurora_corne.keymap" \
+          -DEXTRA_DTC_FLAGS="-Dnice_view_spi=spi3"
+          
           cp build/zephyr/zmk.uf2 ../../aurora_left.uf2
 
       - name: Build Right (RGB + Encoder/Scroll)
         run: |
           cd zmk/app
           rm -rf build
-          west build -b nice_nano -- -DSHIELD="splitkb_aurora_corne_right" -DZMK_CONFIG="${GITHUB_WORKSPACE}/config"
+          west build -b nice_nano -- -DSHIELD="splitkb_aurora_corne_right" \
+          -DZMK_CONFIG="${GITHUB_WORKSPACE}/config"
+          
           cp build/zephyr/zmk.uf2 ../../aurora_right.uf2
 
       - name: Upload Artifacts
