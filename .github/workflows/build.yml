@@ -1,4 +1,4 @@
-name: Build Aurora Corne
+name: Build Aurora Corne Isolated
 on: [push, pull_request, workflow_dispatch]
 
 jobs:
@@ -7,36 +7,39 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          path: my_config  # Checkt dein Repo in den Ordner 'my_config'
 
       - name: Install West
         run: pip3 install west
 
-      - name: Initialize West
+      - name: Setup Isolated Workspace
         run: |
-          west init -l config
+          # Initialisiere ZMK in einem sauberen Unterordner 'zmk_workspace'
+          west init zmk_workspace -m https://github.com/zmkfirmware/zmk --mr main
+          cd zmk_workspace
           west update
           west zephyr-export
-          # Fix für den Board-Error (Pillbug-Definition löschen)
+          
+          # JETZT erst kopieren wir DEINE config hinein
+          cp -r ../my_config/config .
+          
+          # Fix für den Duplikate-Fehler (falls er in Modulen auftritt)
           rm -rf modules/lib/pillbug 2>/dev/null || true
 
-      - name: Build Left (nice!view + RGB)
+      - name: Build Left
         run: |
-          west build -s zmk/app -b nice_nano_v2 -- -DSHIELD="splitkb_aurora_corne_left nice_view_adapter nice_view" -DZMK_CONFIG="${GITHUB_WORKSPACE}/config"
+          cd zmk_workspace
+          west build -s zmk/app -b nice_nano_v2 -- -DSHIELD="splitkb_aurora_corne_left nice_view_adapter nice_view" -DZMK_CONFIG="$(pwd)/config"
 
-      - name: Rename Left
-        run: cp build/zephyr/zmk.uf2 aurora_left.uf2
-
-      - name: Build Right (RGB + Encoder)
+      - name: Build Right
         run: |
-          west build -s zmk/app -b nice_nano_v2 -- -DSHIELD="splitkb_aurora_corne_right" -DZMK_CONFIG="${GITHUB_WORKSPACE}/config"
-
-      - name: Rename Right
-        run: cp build/zephyr/zmk.uf2 aurora_right.uf2
+          cd zmk_workspace
+          west build -s zmk/app -b nice_nano_v2 -- -DSHIELD="splitkb_aurora_corne_right" -DZMK_CONFIG="$(pwd)/config"
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: Aurora_Corne_Firmware
           path: |
-            aurora_left.uf2
-            aurora_right.uf2
+            zmk_workspace/build/zephyr/zmk.uf2
