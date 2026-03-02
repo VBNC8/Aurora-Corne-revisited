@@ -19,7 +19,8 @@ jobs:
       - name: Build Left (nice!view + RGB)
         run: |
           cd zmk/app
-          west build -b nice_nano -- -DSHIELD="splitkb_aurora_corne_left nice_view_adapter nice_view" -DZMK_CONFIG="${GITHUB_WORKSPACE}/config"
+          # Wir erzwingen das Label über ein CMake Flag
+          west build -b nice_nano -- -DSHIELD="splitkb_aurora_corne_left nice_view_adapter nice_view" -DZMK_CONFIG="${GITHUB_WORKSPACE}/config" -Dnice_view_spi_node_label=spi3
           cp build/zephyr/zmk.uf2 ../../aurora_left.uf2
 
       - name: Build Right (RGB + Encoder/Scroll)
