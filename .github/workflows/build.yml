@@ -17,12 +17,16 @@ jobs:
           west zephyr-export
 
       - name: Patch nice_nano for nice_view
-        # Wir fügen den Alias 'nice_view_spi' sicher am Ende des Board-Files hinzu.
-        # Die Syntax / { ... }; sorgt dafür, dass es ein Root-Level-Override ist.
         run: |
+          # Pfad zum Board-File im West-Workspace
           BOARD_FILE="zmk/app/module/boards/nicekeyboards/nice_nano/nice_nano.dts"
+          
+          # Wir definieren das Label 'nice_view_spi' als Referenz auf &spi3
+          # Das muss ausserhalb jeglicher Klammern am Ende der Datei stehen
+          echo 'nice_view_spi: &spi3 {};' >> $BOARD_FILE
+          
+          # Optional: Den Alias setzen, falls andere Shields danach suchen
           echo '/ { aliases { nice-view-spi = &spi3; }; };' >> $BOARD_FILE
-          echo '&spi3 { nice_view_spi: &spi3 { status = "okay"; }; };' >> $BOARD_FILE
 
       - name: Build Left (nice!view + RGB)
         run: |
