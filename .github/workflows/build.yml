@@ -15,31 +15,35 @@ jobs:
 
       - name: Setup ZMK Workspace
         run: |
-          # Initialisiere ZMK mit dem korrekten Pfad zur west.yml (app/west.yml)
-          west init zmk_workspace -m https://github.com/zmkfirmware/zmk --mr main --mf app/west.yml
+          # Initialisiere ZMK. Da wir das Repo direkt klonen, 
+          # landen die Files im Ordner 'zmk'
+          west init zmk_workspace -m https://github.com/zmkfirmware/zmk --mr main
           cd zmk_workspace
           west update
           west zephyr-export
           
           # Fix für den Board-Duplikat-Fehler (Pillbug)
-          # Wir löschen das Modul, das den Konflikt verursacht
           rm -rf modules/lib/pillbug 2>/dev/null || true
 
       - name: Build Left (nice!view + RGB)
         run: |
           cd zmk_workspace
+          # Der Source-Ordner ist bei ZMK-Main direkt 'app' im zmk-Ordner
           west build -s app -b nice_nano_v2 -- -DSHIELD="splitkb_aurora_corne_left nice_view_adapter nice_view" -DZMK_CONFIG="${{ github.workspace }}/config-repo/config"
+          cp build/zephyr/zmk.uf2 ../aurora_left.uf2
 
       - name: Build Right (RGB + Encoder/Scroll)
         run: |
           cd zmk_workspace
-          # WICHTIG: Vor dem zweiten Build den ersten Build-Ordner löschen oder -d nutzen
+          # Clean build für die rechte Seite
           rm -rf build
           west build -s app -b nice_nano_v2 -- -DSHIELD="splitkb_aurora_corne_right" -DZMK_CONFIG="${{ github.workspace }}/config-repo/config"
+          cp build/zephyr/zmk.uf2 ../aurora_right.uf2
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: Aurora_Corne_Firmware
           path: |
-            zmk_workspace/build/zephyr/zmk.uf2
+            aurora_left.uf2
+            aurora_right.uf2
