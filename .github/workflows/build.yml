@@ -1,44 +1,41 @@
-name: Build Aurora Corne Isolated
+name: Build Aurora Corne
 on: [push, pull_request, workflow_dispatch]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Config
+      - name: Checkout
         uses: actions/checkout@v4
+
+      # Diese Action bereitet alles (SDK, West, Toolchain) automatisch vor
+      - name: Install ZMK Toolchain
+        uses: zmkfirmware/zmk-build-action@v2
         with:
-          path: config-repo
-
-      - name: Install West
-        run: pip3 install west
-
-      - name: Clone ZMK Main
-        run: |
-          git clone https://github.com/zmkfirmware/zmk.git zmk_src
-          cd zmk_src
-          west init -l app/
-          west update
-          west zephyr-export
+          repository: zmkfirmware/zmk
+          branch: main
+          # Wir nutzen deine Config aus dem Unterordner 'config'
+          config_path: config
+          # Hier definieren wir die Builds
+          # Die nice_nano Revision 2.0.0 wird automatisch erkannt
+          board: nice_nano
+          shield: splitkb_aurora_corne_left nice_view_adapter nice_view
           
-          # Fix für Pillbug (muss bleiben, damit der Scan nicht abbricht)
-          rm -rf app/boards/mechwild/pillbug
-          rm -rf ../modules/lib/pillbug 2>/dev/null || true
+      - name: Rename Left
+        run: cp build/zephyr/zmk.uf2 aurora_left.uf2
 
-      - name: Build Left (nice!view + RGB)
-        run: |
-          cd zmk_src
-          # Geändert auf nice_nano (ohne _v2)
-          west build -s app -b nice_nano -- -DSHIELD="splitkb_aurora_corne_left nice_view_adapter nice_view" -DZMK_CONFIG="${{ github.workspace }}/config-repo/config"
-          cp build/zephyr/zmk.uf2 ../aurora_left.uf2
+      # Zweiter Durchgang für die rechte Seite
+      - name: Build Right
+        uses: zmkfirmware/zmk-build-action@v2
+        with:
+          repository: zmkfirmware/zmk
+          branch: main
+          config_path: config
+          board: nice_nano
+          shield: splitkb_aurora_corne_right
 
-      - name: Build Right (RGB + Encoder/Scroll)
-        run: |
-          cd zmk_src
-          rm -rf build 
-          # Geändert auf nice_nano (ohne _v2)
-          west build -s app -b nice_nano -- -DSHIELD="splitkb_aurora_corne_right" -DZMK_CONFIG="${{ github.workspace }}/config-repo/config"
-          cp build/zephyr/zmk.uf2 ../aurora_right.uf2
+      - name: Rename Right
+        run: cp build/zephyr/zmk.uf2 aurora_right.uf2
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
