@@ -1,5 +1,5 @@
-&spi3 {
-    nice_view_spi: &spi3 { status = "okay"; };
+/ {
+    nice_view_spi: &spi3 { };
 };
 
 #include <behaviors.dtsi>
