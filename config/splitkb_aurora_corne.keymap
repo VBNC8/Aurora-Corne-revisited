@@ -136,26 +136,22 @@
     pinctrl-0 = <&spi3_default>;
     pinctrl-1 = <&spi3_sleep>;
     pinctrl-names = "default", "sleep";
+    
+    // Hier gehört der CS-Pin für das erste Gerät (reg 0) hin:
+    cs-gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>; 
 
-    // Das Display als Device am SPI-Bus
     nice_view: ls0xx@0 {
         compatible = "sharp,ls0xx";
-        reg = <0>; // SPI Address
+        reg = <0>; 
         spi-max-frequency = <1000000>;
-        // Hier setzen wir deinen handverdrahteten Pin 006:
-        cs-gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>; 
+        // cs-gpios hier ENTFERNEN (steht jetzt oben)
         width = <160>;
         height = <68>;
     };
 
-    // Deine LEDs bleiben am selben Bus
     led_strip: ws2812@0 {
         compatible = "worldsemi,ws2812-spi";
-        reg = <1>; // Zweites Device am Bus
-        spi-max-frequency = <4000000>;
-        chain-length = <18>; 
-        spi-one-frame = <0x70>;
-        spi-zero-frame = <0x40>;
-        color-mapping = <2 1 3>; 
+        reg = <1>; 
+        // ... restliche Konfiguration
     };
 };
