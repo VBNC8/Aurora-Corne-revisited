@@ -2,10 +2,15 @@ manifest:
   remotes:
     - name: zmkfirmware
       url-base: https://github.com/zmkfirmware
+    - name: ftreca
+      url-base: https://github.com/ftreca # Bekanntes Modul für Maus-Support
   projects:
     - name: zmk
       remote: zmkfirmware
       revision: main
       import: app/west.yml
+    - name: zmk-mouse-ps2 # Oder ein ähnliches Modul für Encoder-Maus-Emulation
+      remote: ftreca
+      revision: main
   self:
     path: config
