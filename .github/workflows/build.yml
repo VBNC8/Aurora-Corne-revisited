@@ -1,59 +1,41 @@
 name: Build Aurora Corne
-
 on: [push, pull_request, workflow_dispatch]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    name: ZMK Build
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Cache west modules
-        uses: actions/cache@v4
-        env:
-          cache-name: cache-zephyr-modules
         with:
-          path: |
-            modules/
-            tools/
-            zephyr/
-            bootloader/
-            zmk/
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('config/west.yml') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
+          path: config  # Dein Repo landet im Unterordner 'config'
 
       - name: Install West
         run: pip3 install west
 
-      - name: ZMK Preparation
+      - name: Initialize West Workspace
         run: |
-          west init -l config
+          west init -m https://github.com/zmkfirmware/zmk --mr main workspace
+          cd workspace
+          # Wir überschreiben die Standard-Config mit DEINER Config
+          rm -rf config
+          cp -r ../config config
           west update
           west zephyr-export
 
-      - name: Build Left (Aurora Corne + Nice!View)
+      - name: Build Left
         run: |
-          west build -s zmk/app -b nice_nano_v2 -- -DSHIELD="splitkb_aurora_corne_left nice_view_adapter nice_view" -DZMK_CONFIG="${GITHUB_WORKSPACE}/config"
+          cd workspace
+          west build -s zmk/app -b nice_nano_v2 -- -DSHIELD="splitkb_aurora_corne_left nice_view_adapter nice_view" -DZMK_CONFIG="$(pwd)/config"
 
-      - name: Rename Left Artifact
-        run: cp build/zephyr/zmk.uf2 aurora_corne_left.uf2
-
-      - name: Build Right (Aurora Corne + Nice!View)
+      - name: Build Right
         run: |
-          west build -s zmk/app -b nice_nano_v2 -- -DSHIELD="splitkb_aurora_corne_right nice_view_adapter nice_view" -DZMK_CONFIG="${GITHUB_WORKSPACE}/config"
-
-      - name: Rename Right Artifact
-        run: cp build/zephyr/zmk.uf2 aurora_corne_right.uf2
+          cd workspace
+          west build -s zmk/app -b nice_nano_v2 -- -DSHIELD="splitkb_aurora_corne_right nice_view_adapter nice_view" -DZMK_CONFIG="$(pwd)/config"
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: Aurora_Corne_Firmware
           path: |
-            aurora_corne_left.uf2
-            aurora_corne_right.uf2
+            workspace/build/zephyr/zmk.uf2
