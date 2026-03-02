@@ -133,13 +133,25 @@
 
 &spi3 {
     status = "okay";
-    // Diese beiden Zeilen fehlten dem Compiler:
     pinctrl-0 = <&spi3_default>;
-    pinctrl-names = "default";
-    
+    pinctrl-1 = <&spi3_sleep>;
+    pinctrl-names = "default", "sleep";
+
+    // Das Display als Device am SPI-Bus
+    nice_view: ls0xx@0 {
+        compatible = "sharp,ls0xx";
+        reg = <0>; // SPI Address
+        spi-max-frequency = <1000000>;
+        // Hier setzen wir deinen handverdrahteten Pin 006:
+        cs-gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>; 
+        width = <160>;
+        height = <68>;
+    };
+
+    // Deine LEDs bleiben am selben Bus
     led_strip: ws2812@0 {
         compatible = "worldsemi,ws2812-spi";
-        reg = <0>;
+        reg = <1>; // Zweites Device am Bus
         spi-max-frequency = <4000000>;
         chain-length = <18>; 
         spi-one-frame = <0x70>;
