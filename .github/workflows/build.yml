@@ -5,7 +5,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: zmkfirmware/zmk-build-arm:stable # Nutzt das offizielle ZMK SDK Image
+      image: zmkfirmware/zmk-build-arm:stable
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -20,13 +20,14 @@ jobs:
         run: |
           cd zmk/app
           west build -b nice_nano -- -DSHIELD="splitkb_aurora_corne_left nice_view_adapter nice_view" -DZMK_CONFIG="${GITHUB_WORKSPACE}/config"
+          cp build/zephyr/zmk.uf2 ../../aurora_left.uf2
 
       - name: Build Right (RGB + Encoder/Scroll)
         run: |
-          # Clean build für die rechte Seite
+          cd zmk/app
           rm -rf build
-          west build -s zmk/app -b nice_nano -- -DSHIELD="splitkb_aurora_corne_right" -DZMK_CONFIG="${GITHUB_WORKSPACE}/config"
-          cp build/zephyr/zmk.uf2 aurora_right.uf2
+          west build -b nice_nano -- -DSHIELD="splitkb_aurora_corne_right" -DZMK_CONFIG="${GITHUB_WORKSPACE}/config"
+          cp build/zephyr/zmk.uf2 ../../aurora_right.uf2
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
