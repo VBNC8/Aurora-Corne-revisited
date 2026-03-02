@@ -33,7 +33,7 @@ jobs:
           cd zmk/app
           # Wir löschen das Build-Verzeichnis komplett, um Altlasten zu vermeiden
           rm -rf build 
-          west build -p always -b nice_nano_v2 -- -DSHIELD="splitkb_aurora_corne_left nice_view_adapter" -DZMK_CONFIG="${GITHUB_WORKSPACE}/config"
+          west build -p always -b nice_nano -- -DSHIELD="splitkb_aurora_corne_left nice_view_adapter" -DZMK_CONFIG="${GITHUB_WORKSPACE}/config"
           cp build/zephyr/zmk.uf2 ../../aurora_left.uf2
 
       - name: Build Right (RGB + Encoder/Scroll)
