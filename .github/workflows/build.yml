@@ -10,20 +10,22 @@ jobs:
         with:
           path: config-repo
 
+      - name: Cleanup Runner Workspace
+        run: |
+          # Lösche alle eventuell mitgebrachten ZMK/Zephyr Altlasten im Repo-Pfad
+          rm -rf config-repo/zmk config-repo/zephyr config-repo/shields config-repo/modules
+
       - name: Install West
         run: pip3 install west
 
       - name: Clone ZMK & Setup
         run: |
-          # Wir klonen ZMK manuell in den Ordner 'zmk'
           git clone https://github.com/zmkfirmware/zmk.git zmk
           cd zmk
-          # Jetzt initialisieren wir West lokal im ZMK-Ordner mit der richtigen Datei
           west init -l app/
           west update
           west zephyr-export
-          
-          # Fix für den Board-Duplikat-Fehler (Pillbug)
+          # Sicherheitshalber das Pillbug-Modul löschen, falls es im West-Update doppelt kam
           rm -rf ../modules/lib/pillbug 2>/dev/null || true
 
       - name: Build Left (nice!view + RGB)
@@ -35,7 +37,7 @@ jobs:
       - name: Build Right (RGB + Encoder/Scroll)
         run: |
           cd zmk
-          rm -rf build # Sicherstellen, dass kein alter Cache stört
+          rm -rf build 
           west build -s app -b nice_nano_v2 -- -DSHIELD="splitkb_aurora_corne_right" -DZMK_CONFIG="${{ github.workspace }}/config-repo/config"
           cp build/zephyr/zmk.uf2 ../aurora_right.uf2
 
@@ -46,3 +48,4 @@ jobs:
           path: |
             aurora_left.uf2
             aurora_right.uf2
+          
